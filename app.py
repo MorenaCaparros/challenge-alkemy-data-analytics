@@ -1,3 +1,4 @@
+from tkinter.messagebox import NO
 import requests as req
 import pandas as pd
 import os
@@ -5,8 +6,6 @@ import csv
 import datetime
 import locale
 
-
-    
     
 
 locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')  # cambia el idioma
@@ -29,11 +28,15 @@ def saveCSVFile(archive_name, url):
 def createFolder(path):
     os.makedirs(path, exist_ok=True)
 
+    
+def convertCSVToDataFrame(csv):
+    df = pd.read_csv(csv, on_bad_lines='skip')
+    return df
 
 def setFoldersAndFiles(category):
-    global df_library
-    global df_museum
-    global df_cinema
+    global dfLibrary
+    global dfMuseum
+    global dfCinema
     
     fullDate = x.strftime(category+'-%d-%m-%Y')
     monthName = x.strftime('%Y-%B')
@@ -47,18 +50,64 @@ def setFoldersAndFiles(category):
             saveCSVFile(archiveName, getURL(valueCategory))
 
     if category == 'museos':
-        df_museum = convertCSVToDataFrame(archiveName)
+        # temp_lines = archiveName.readline() + '\n' + archiveName.readline()
+        # dialect = csv.Sniffer().sniff(temp_lines, delimiters=';,')
+        # archiveName.seek(0) 
+        dfMuseum = convertCSVToDataFrame(archiveName)
     elif category == 'salas_de_cine':
-        df_cinema = convertCSVToDataFrame(archiveName) 
+        # temp_lines = archiveName.readline() + '\n' + archiveName.readline()
+        # dialect = csv.Sniffer().sniff(temp_lines, delimiters=';,')
+        # archiveName.seek(0) 
+        dfCinema = convertCSVToDataFrame(archiveName) 
     elif category == 'bibliotecas_populares':
-        df_library = convertCSVToDataFrame(archiveName)
+        # temp_lines = archiveName.readline() + '\n' + archiveName.readline()
+        # dialect = csv.Sniffer().sniff(temp_lines, delimiters=';,')
+        # archiveName.seek(0) 
+        dfLibrary = convertCSVToDataFrame(archiveName)
    
-    
-def convertCSVToDataFrame(csv):
-    df = pd.read_csv(csv)
-    return df
-    
-    
+for key in categories:
+    setFoldersAndFiles(key)
+
+# Depuracion de datos
+columnsNamesM = list(dfMuseum.columns.values)
+columnsNamesL = list(dfLibrary.columns.values)
+columnsNamesC = list(dfCinema.columns.values)
+
+##
+# ['Cod_Loc' 'IdProvincia' 'IdDepartamento' 'Observaciones' 'categoria'
+#  'subcategoria' 'provincia' 'localidad' 'nombre' 'direccion' 'piso' 'CP'
+#  'cod_area' 'telefono' 'Mail' 'Web' 'Latitud' 'Longitud'
+#  'TipoLatitudLongitud' 'Info_adicional' 'fuente' 'jurisdiccion'
+#  'año_inauguracion' 'actualizacion']
+# ['Cod_Loc' 'IdProvincia' 'IdDepartamento' 'Observacion' 'Categoría'
+#  'Subcategoria' 'Provincia' 'Departamento' 'Localidad' 'Nombre'
+#  'Domicilio' 'Piso' 'CP' 'Cod_tel' 'Teléfono' 'Mail' 'Web'
+#  'Información adicional' 'Latitud' 'Longitud' 'TipoLatitudLongitud'
+#  'Fuente' 'Tipo_gestion' 'año_inicio' 'Año_actualizacion']
+# ['Cod_Loc' 'IdProvincia' 'IdDepartamento' 'Observaciones' 'Categoría'
+#  'Provincia' 'Departamento' 'Localidad' 'Nombre' 'Dirección' 'Piso' 'CP'
+#  'cod_area' 'Teléfono' 'Mail' 'Web' 'Información adicional' 'Latitud'
+#  'Longitud' 'TipoLatitudLongitud' 'Fuente' 'tipo_gestion' 'Pantallas'
+#  'Butacas' 'espacio_INCAA' 'año_actualizacion']
+##
+dfFilteredMuseum = dfMuseum[['Cod_Loc', 'IdProvincia', 'IdDepartamento', 'categoria', 'provincia', 'localidad', 'nombre', 'direccion', 'CP', 'Mail', 'Web']]
+dfFilteredMuseum.insert(9,'numero de telefono',(dfMuseum['cod_area'].astype(str) + '-' + dfMuseum['telefono'].astype(str)), allow_duplicates=False)
+#dfFilteredMuseum['numero de telefono'] = dfMuseum['cod_area'] + '' + dfMuseum['telefono']
+# x = str(dfMuseum['telefono'])
+# print(str(dfMuseum['cod_area']).cat(x))
+# dfFilteredLibrary = dfLibrary[columnsNamesL]
+# dfFilteredCinema = dfCinema[columnsNamesC]
+print (dfMuseum['cod_area'].astype(str(int)))
+pd.set_option('display.max_rows', None, 'display.max_columns', None)
+#print(dfFilteredMuseum['numero de telefono'])
+# print(columnsNamesL)
+#print(dfFilteredMuseum['numero de telefono'])
+ 
+
+
+# dfMuseumFiltered = dfMuseum[['']]
+
+
 ###############
 
 # titulos que necesito:
@@ -67,17 +116,4 @@ def convertCSVToDataFrame(csv):
 ##
 # titulos que tengo
 
-# Hacer una lista que sea fileName y qeu se vaya pisando con los nuevos nombres de archivos
-# def readAndNormalizeFiles(fileKey):
-#     monthName = x.strftime('%Y-%B')
-#     archiveName = f'./{fileKey}/{monthName}/{fullDate}.csv'
-#     fullDate = x.strftime(fileKey+'-%d-%m-%Y')
-#     with open(archiveName, 'r', encoding='utf-8') as csv_file:
-#         csv_reader = csv.reader(csv_file, delimiter=',')
-#         header = next(csv_reader)
-#         print(header)
 
-for key in categories:
-    
-    setFoldersAndFiles(key)
-    print (df_museum)
