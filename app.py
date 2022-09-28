@@ -8,15 +8,15 @@ import locale
 
     
 
-locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')  # cambia el idioma
+
 x = datetime.datetime.now()
-categories = {'museos': 'https://datos.cultura.gob.ar/dataset/37305de4-3cce-4d4b-9d9a-fec3ca61d09f/resource/4207def0-2ff7-41d5-9095-d42ae8207a5d/download/museos_datosabiertos.csv', 'salas_de_cine': "https://datos.cultura.gob.ar/dataset/37305de4-3cce-4d4b-9d9a-fec3ca61d09f/resource/392ce1a8-ef11-4776-b280-6f1c7fae16ae/download/cine.csv",
-              'bibliotecas_populares': "https://datos.cultura.gob.ar/dataset/37305de4-3cce-4d4b-9d9a-fec3ca61d09f/resource/01c6c048-dbeb-44e0-8efa-6944f73715d7/download/biblioteca_popular.csv"}
+categories = {'museos': 'https://docs.google.com/spreadsheets/d/1PS2_yAvNVEuSY0gI8Nky73TQMcx_G1i18lm--jOGfAA/export?format=csv', 'salas_de_cine': "https://docs.google.com/spreadsheets/d/1o8QeMOKWm4VeZ9VecgnL8BWaOlX5kdCDkXoAph37sQM/export?format=csv",
+              'bibliotecas_populares': "https://docs.google.com/spreadsheets/d/1udwn61l_FZsFsEuU8CMVkvU2SpwPW3Krt1OML3cYMYk/export?format=csv"}
 
 # Tener en cuenta que las urls pueden cambiar en un futuro
 def getURL(url):
     return req.get(url)
-
+    
 
 def saveCSVFile(archive_name, url):
     with open(archive_name, 'w', encoding='utf-8') as file:
@@ -24,11 +24,9 @@ def saveCSVFile(archive_name, url):
         for line in url.iter_lines():
             writer.writerow(line.decode('utf-8').split(','))
 
-
 def createFolder(path):
     os.makedirs(path, exist_ok=True)
 
-    
 def convertCSVToDataFrame(csv):
     df = pd.read_csv(csv, on_bad_lines='skip')
     return df
@@ -48,64 +46,57 @@ def setFoldersAndFiles(category):
         if (key == category):
             valueCategory = categories[key]
             saveCSVFile(archiveName, getURL(valueCategory))
+   
 
     if category == 'museos':
-        # temp_lines = archiveName.readline() + '\n' + archiveName.readline()
-        # dialect = csv.Sniffer().sniff(temp_lines, delimiters=';,')
-        # archiveName.seek(0) 
         dfMuseum = convertCSVToDataFrame(archiveName)
     elif category == 'salas_de_cine':
-        # temp_lines = archiveName.readline() + '\n' + archiveName.readline()
-        # dialect = csv.Sniffer().sniff(temp_lines, delimiters=';,')
-        # archiveName.seek(0) 
         dfCinema = convertCSVToDataFrame(archiveName) 
     elif category == 'bibliotecas_populares':
-        # temp_lines = archiveName.readline() + '\n' + archiveName.readline()
-        # dialect = csv.Sniffer().sniff(temp_lines, delimiters=';,')
-        # archiveName.seek(0) 
         dfLibrary = convertCSVToDataFrame(archiveName)
    
 for key in categories:
     setFoldersAndFiles(key)
 
 # Depuracion de datos
-columnsNamesM = list(dfMuseum.columns.values)
-columnsNamesL = list(dfLibrary.columns.values)
-columnsNamesC = list(dfCinema.columns.values)
+dfLibrary['telefono_completo'] = dfLibrary.Cod_tel.str.cat(dfLibrary.Teléfono)
+#dfMuseum['telefono_completo'] =
+#dfCinema['telefono_completo']  =
+print(dfLibrary['telefono_completo'])
+dfLibraryMapped = dfLibrary[['Cod_Loc','IdProvincia','IdDepartamento','Categoría','Provincia','Localidad','Nombre','Domicilio','CP','Teléfono','Mail','Web']]
+dfMuseumMapped = dfMuseum[['Cod_Loc','IdProvincia','IdDepartamento','categoria','provincia','localidad','nombre','direccion','CP','telefono','Mail','Web']]
+dfCinemaMapped = dfCinema[['Cod_Loc','IdProvincia','IdDepartamento','Categoría','Provincia','Localidad','Nombre','Dirección','CP','Teléfono','Mail','Web']]
+
+column_names = (['cod_localidad','id_provincia','id_departamento','categoría','provincia','localidad', 'nombre', 'domicilio','código_postal', 'número_de_teléfono','mail','web'])
+
+def renameDf (df, columnNames):
+    df.columns = columnNames
+    return df
+
+renameDf(dfLibraryMapped, column_names)
+renameDf(dfMuseumMapped, column_names)
+renameDf(dfCinemaMapped, column_names)
+
+dfEntertainment =pd.concat([dfLibraryMapped,dfMuseumMapped,dfCinemaMapped])
+
+
+print(dfEntertainment)
 
 ##
-# ['Cod_Loc' 'IdProvincia' 'IdDepartamento' 'Observaciones' 'categoria'
-#  'subcategoria' 'provincia' 'localidad' 'nombre' 'direccion' 'piso' 'CP'
-#  'cod_area' 'telefono' 'Mail' 'Web' 'Latitud' 'Longitud'
-#  'TipoLatitudLongitud' 'Info_adicional' 'fuente' 'jurisdiccion'
-#  'año_inauguracion' 'actualizacion']
-# ['Cod_Loc' 'IdProvincia' 'IdDepartamento' 'Observacion' 'Categoría'
-#  'Subcategoria' 'Provincia' 'Departamento' 'Localidad' 'Nombre'
-#  'Domicilio' 'Piso' 'CP' 'Cod_tel' 'Teléfono' 'Mail' 'Web'
-#  'Información adicional' 'Latitud' 'Longitud' 'TipoLatitudLongitud'
-#  'Fuente' 'Tipo_gestion' 'año_inicio' 'Año_actualizacion']
-# ['Cod_Loc' 'IdProvincia' 'IdDepartamento' 'Observaciones' 'Categoría'
-#  'Provincia' 'Departamento' 'Localidad' 'Nombre' 'Dirección' 'Piso' 'CP'
-#  'cod_area' 'Teléfono' 'Mail' 'Web' 'Información adicional' 'Latitud'
-#  'Longitud' 'TipoLatitudLongitud' 'Fuente' 'tipo_gestion' 'Pantallas'
-#  'Butacas' 'espacio_INCAA' 'año_actualizacion']
+# [Cod_Loc,IdProvincia,IdDepartamento,Observacion,Categoría,Subcategoria,Provincia,Departamento,Localidad,Nombre,Domicilio,Piso,CP,Cod_tel,Teléfono,Mail,Web,Información adicional,Latitud,Longitud,TipoLatitudLongitud,Fuente,Tipo_gestion,año_inicio,Año_actualizacion]
+# [Cod_Loc,IdProvincia,IdDepartamento,Observaciones,categoria,subcategoria,provincia,localidad,nombre,direccion,piso,CP,cod_area,telefono,Mail,Web,Latitud,Longitud,TipoLatitudLongitud,Info_adicional,fuente,jurisdiccion,año_inauguracion,actualizacion]
+# [Cod_Loc,IdProvincia,IdDepartamento,Observaciones,Categoría,Provincia,Departamento,Localidad,Nombre,Dirección,Piso,CP,cod_area,Teléfono,Mail,Web,Información adicional,Latitud,Longitud,TipoLatitudLongitud,Fuente,tipo_gestion,Pantallas,Butacas,espacio_INCAA,año_actualizacion]
 ##
-dfFilteredMuseum = dfMuseum[['Cod_Loc', 'IdProvincia', 'IdDepartamento', 'categoria', 'provincia', 'localidad', 'nombre', 'direccion', 'CP', 'Mail', 'Web']]
-dfFilteredMuseum.insert(9,'numero de telefono',(dfMuseum['cod_area'].astype(str) + '-' + dfMuseum['telefono'].astype(str)), allow_duplicates=False)
+#dfFilteredMuseum = dfMuseum[['Cod_Loc', 'IdProvincia', 'IdDepartamento', 'categoria', 'provincia', 'localidad', 'nombre', 'direccion', 'CP', 'Mail', 'Web']]
+#dfFilteredMuseum.insert(9,'numero de telefono',(dfMuseum['cod_area'].astype(str) + '-' + dfMuseum['telefono'].astype(str)), allow_duplicates=False)
 #dfFilteredMuseum['numero de telefono'] = dfMuseum['cod_area'] + '' + dfMuseum['telefono']
 # x = str(dfMuseum['telefono'])
-# print(str(dfMuseum['cod_area']).cat(x))
+# print(str(dfMuseum['cod_area'])2.cat(x))
 # dfFilteredLibrary = dfLibrary[columnsNamesL]
 # dfFilteredCinema = dfCinema[columnsNamesC]
-print (dfMuseum['cod_area'].astype(str(int)))
-pd.set_option('display.max_rows', None, 'display.max_columns', None)
-#print(dfFilteredMuseum['numero de telefono'])
-# print(columnsNamesL)
-#print(dfFilteredMuseum['numero de telefono'])
- 
+#print (dfMuseum['cod_area'].astype(str(int)))
+#pd.set_option('display.max_rows', None, 'display.max_columns', None)
 
-
-# dfMuseumFiltered = dfMuseum[['']]
 
 
 ###############
