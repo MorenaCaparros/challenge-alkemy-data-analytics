@@ -58,11 +58,20 @@ def setFoldersAndFiles(category):
 for key in categories:
     setFoldersAndFiles(key)
 
-# Depuracion de datos
+# Uniendo Cod_area con el telefono
+dfMuseum['cod_area'] = dfMuseum['cod_area'].fillna(0)
+dfMuseum['telefono'] = dfMuseum['telefono'].fillna(0)
+#intentando corregir error de int que me genera por los caracteres especiales
+museumCod = dfMuseum['cod_area']
+museumTel = dfMuseum['telefono']
+dfMuseum['cod_area'] = museumCod.astype(int)
+dfMuseum['telefono'] = museumTel.astype(int)
 dfLibrary['telefono_completo'] = dfLibrary.Cod_tel.str.cat(dfLibrary.Teléfono)
-#dfMuseum['telefono_completo'] =
-#dfCinema['telefono_completo']  =
-print(dfLibrary['telefono_completo'])
+dfMuseum['telefono_completo'] =  dfMuseum['cod_area'].str.cat(dfMuseum.telefono)
+#dfCinema['telefono_completo']  = dfCinema.cod_area.str.cat(dfCinema.Teléfono)
+print(dfMuseum['telefono_completo'])
+
+#depuracion de datos
 dfLibraryMapped = dfLibrary[['Cod_Loc','IdProvincia','IdDepartamento','Categoría','Provincia','Localidad','Nombre','Domicilio','CP','Teléfono','Mail','Web']]
 dfMuseumMapped = dfMuseum[['Cod_Loc','IdProvincia','IdDepartamento','categoria','provincia','localidad','nombre','direccion','CP','telefono','Mail','Web']]
 dfCinemaMapped = dfCinema[['Cod_Loc','IdProvincia','IdDepartamento','Categoría','Provincia','Localidad','Nombre','Dirección','CP','Teléfono','Mail','Web']]
@@ -80,7 +89,7 @@ renameDf(dfCinemaMapped, column_names)
 dfEntertainment =pd.concat([dfLibraryMapped,dfMuseumMapped,dfCinemaMapped])
 
 
-print(dfEntertainment)
+#print(dfEntertainment)
 
 ##
 # [Cod_Loc,IdProvincia,IdDepartamento,Observacion,Categoría,Subcategoria,Provincia,Departamento,Localidad,Nombre,Domicilio,Piso,CP,Cod_tel,Teléfono,Mail,Web,Información adicional,Latitud,Longitud,TipoLatitudLongitud,Fuente,Tipo_gestion,año_inicio,Año_actualizacion]
