@@ -58,23 +58,23 @@ def setFoldersAndFiles(category):
 for key in categories:
     setFoldersAndFiles(key)
 
-# Uniendo Cod_area con el telefono
+# Uniendo Cod_area con el telefono y llenando los null
 dfMuseum['cod_area'] = dfMuseum['cod_area'].fillna(0)
-dfMuseum['telefono'] = dfMuseum['telefono'].fillna(0)
-#intentando corregir error de int que me genera por los caracteres especiales
-museumCod = dfMuseum['cod_area']
-museumTel = dfMuseum['telefono']
-dfMuseum['cod_area'] = museumCod.astype(int)
-dfMuseum['telefono'] = museumTel.astype(int)
+dfMuseum['telefono'] = dfMuseum['telefono'].fillna('s/d')
+
+# Convirtiendo columnas del dfMuseum para poder concatenarlas despues
+dfMuseum['cod_area'] = dfMuseum['cod_area'].astype(int).astype(str)
+dfMuseum['telefono'] = dfMuseum['telefono'].astype(str)
+
+#Concatenacion de las columnas cod_area + telefono en una nueva columna: telefono_completo
 dfLibrary['telefono_completo'] = dfLibrary.Cod_tel.str.cat(dfLibrary.Teléfono)
-dfMuseum['telefono_completo'] =  dfMuseum['cod_area'].str.cat(dfMuseum.telefono)
-#dfCinema['telefono_completo']  = dfCinema.cod_area.str.cat(dfCinema.Teléfono)
-print(dfMuseum['telefono_completo'])
+dfMuseum['telefono_completo'] =  dfMuseum['cod_area'].str.cat(dfMuseum.telefono).str.replace(' ',  '')
+dfCinema['telefono_completo']  = dfCinema.cod_area.str.cat(dfCinema.Teléfono)
 
 #depuracion de datos
-dfLibraryMapped = dfLibrary[['Cod_Loc','IdProvincia','IdDepartamento','Categoría','Provincia','Localidad','Nombre','Domicilio','CP','Teléfono','Mail','Web']]
-dfMuseumMapped = dfMuseum[['Cod_Loc','IdProvincia','IdDepartamento','categoria','provincia','localidad','nombre','direccion','CP','telefono','Mail','Web']]
-dfCinemaMapped = dfCinema[['Cod_Loc','IdProvincia','IdDepartamento','Categoría','Provincia','Localidad','Nombre','Dirección','CP','Teléfono','Mail','Web']]
+dfLibraryMapped = dfLibrary[['Cod_Loc','IdProvincia','IdDepartamento','Categoría','Provincia','Localidad','Nombre','Domicilio','CP','telefono_completo','Mail','Web']]
+dfMuseumMapped = dfMuseum[['Cod_Loc','IdProvincia','IdDepartamento','categoria','provincia','localidad','nombre','direccion','CP','telefono_completo','Mail','Web']]
+dfCinemaMapped = dfCinema[['Cod_Loc','IdProvincia','IdDepartamento','Categoría','Provincia','Localidad','Nombre','Dirección','CP','telefono_completo','Mail','Web']]
 
 column_names = (['cod_localidad','id_provincia','id_departamento','categoría','provincia','localidad', 'nombre', 'domicilio','código_postal', 'número_de_teléfono','mail','web'])
 
@@ -89,7 +89,7 @@ renameDf(dfCinemaMapped, column_names)
 dfEntertainment =pd.concat([dfLibraryMapped,dfMuseumMapped,dfCinemaMapped])
 
 
-#print(dfEntertainment)
+print(dfEntertainment)
 
 ##
 # [Cod_Loc,IdProvincia,IdDepartamento,Observacion,Categoría,Subcategoria,Provincia,Departamento,Localidad,Nombre,Domicilio,Piso,CP,Cod_tel,Teléfono,Mail,Web,Información adicional,Latitud,Longitud,TipoLatitudLongitud,Fuente,Tipo_gestion,año_inicio,Año_actualizacion]
